@@ -4,7 +4,8 @@ import numpy as np
 from scipy.sparse import coo_matrix
 import scipy.sparse as sps
 
-def addG(indexes, size, G = None):
+
+def addG(indexes, size, G=None):
     """
     Добавение нового линейного ограничения к матрице G
 
@@ -27,14 +28,14 @@ def addG(indexes, size, G = None):
         for ind in indexes:
             g[ind[1] * size[0] + ind[0]] = 1
         if G is not None:
-            return np.vstack((G,g))
+            return np.vstack((G, g))
         return g
     except Exception as e:
         logging.error(traceback.format_exc())
         return -1
 
 
-def addrows(shape, G = None, sparsed = False):
+def addrows(shape, G=None, sparsed=False):
     """
     Добавение линейных ограничений для сумм всех строк к матрице G
 
@@ -52,24 +53,24 @@ def addrows(shape, G = None, sparsed = False):
     """
     try:
         if sparsed:
-            row = np.tile(range(shape[0]),shape[1])
-            col = np.arange(shape[0]*shape[1])
-            data = np.ones(shape[0]*shape[1])
-            g = coo_matrix((data, (row, col)), shape=(shape[0], shape[0]*shape[1])).tocsr()
+            row = np.tile(range(shape[0]), shape[1])
+            col = np.arange(shape[0] * shape[1])
+            data = np.ones(shape[0] * shape[1])
+            g = coo_matrix((data, (row, col)), shape=(shape[0], shape[0] * shape[1])).tocsr()
             if G is not None:
-                return sps.vstack((G,g))
+                return sps.vstack((G, g))
         else:
             g = np.zeros(shape=[shape[0], shape[0] * shape[1]])
-            g = np.tile(np.eye(shape[0]),shape[1])
+            g = np.tile(np.eye(shape[0]), shape[1])
             if G is not None:
-                return np.vstack((G,g))
+                return np.vstack((G, g))
         return g
     except Exception as e:
         logging.error(traceback.format_exc())
         return -1
 
 
-def addcolumns(shape, G = None, sparsed = False):
+def addcolumns(shape, G=None, sparsed=False):
     """
     Добавение линейных ограничений для сумм всех столбцов к матрице G
 
@@ -87,19 +88,19 @@ def addcolumns(shape, G = None, sparsed = False):
     """
     try:
         if sparsed:
-            row = np.repeat(range(shape[1]),shape[0])
-            col = np.arange(shape[0]*shape[1])
-            data = np.ones(shape[0]*shape[1])
-            g = coo_matrix((data, (row, col)), shape=(shape[1], shape[0]*shape[1])).tocsr()
+            row = np.repeat(range(shape[1]), shape[0])
+            col = np.arange(shape[0] * shape[1])
+            data = np.ones(shape[0] * shape[1])
+            g = coo_matrix((data, (row, col)), shape=(shape[1], shape[0] * shape[1])).tocsr()
             if G is not None:
-                return sps.vstack((G,g))
+                return sps.vstack((G, g))
         else:
             g = np.zeros(shape=[shape[1], shape[0] * shape[1]])
             for i in range(0, shape[1]):
                 for j in range(shape[0]):
                     g[i][i * shape[0] + j] = 1
             if G is not None:
-                return np.vstack((G,g))
+                return np.vstack((G, g))
         return g
     except Exception as e:
         logging.error(traceback.format_exc())
@@ -127,7 +128,7 @@ def tovector(a):
         return -1
 
 
-def tomatrix(a, shape = None):
+def tomatrix(a, shape=None):
     """
     Перевод вектора а в матричную форму размерности shape
 
@@ -144,7 +145,7 @@ def tomatrix(a, shape = None):
         матричная форма вектора a
     """
     try:
-        if not shape:
+        if shape is None:
             shape = int(np.sqrt(len(a))), -1
         return a.reshape((shape[1], shape[0])).T
     except Exception as e:

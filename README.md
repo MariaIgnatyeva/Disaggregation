@@ -12,3 +12,4 @@ Other files:
 - **scripts** - source code of the project
 - **data** - folder for tables
 - **results** - folder for result files, for example - file with results of experiments with agregation with different tables
+# SUTs-time-series-construction

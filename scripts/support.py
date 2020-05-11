@@ -18,10 +18,12 @@ warnings.simplefilter("ignore")
     
     - pack_name(str) - приклеивает к строке годы, к которым относится содержание строки, и если было указано, то год,
     для которого были пересчитаны цены в таблице
+    
     - save_to_excel(file_name, rounding="%.3f", **tables) - сохраняет полученные таблицы в выбранный excel-файл
 """
 
-def load_Rosstat_non_sym(path, sheetname, quandrant2_columns = 11, quadrant3_rows = 1):
+
+def load_Rosstat_non_sym(path, sheetname, quandrant2_columns=11, quadrant3_rows=1):
     """
     Чтение данных о 1ом квадранте и всей таблицы целиком из несимметричной таблицы Росстата. 
 
@@ -54,8 +56,8 @@ def load_Rosstat_non_sym(path, sheetname, quandrant2_columns = 11, quadrant3_row
     # Расположение таблицы и столбцов\строк с названиями в ней
     vertical_table_start = 3  # положение начала таблицы по вертикали
     horizontal_table_start = 3  # положение начала таблицы по горизонтали
-    industries_position = slice(horizontal_table_start, -quandrant2_columns)  # положение и размеры части таблицы по
-    # отраслям
+    industries_position = slice(horizontal_table_start,
+                                -quandrant2_columns)  # положение и размеры части таблицы по отраслям
     products_position = slice(vertical_table_start, -quadrant3_rows)  # положение и размеры части таблицы по продуктам
 
     codes_industries_position = 1  # номер строки в таблице с кодами отраслей
@@ -67,7 +69,6 @@ def load_Rosstat_non_sym(path, sheetname, quandrant2_columns = 11, quadrant3_row
     file = pd.ExcelFile(path)
     df_all = pd.read_excel(file, sheet_name=sheetname)
 
-
     # Получаем названия отраслей(столбцы) и продуктов(строки)
     rows = df_all.iloc[vertical_table_start:, products_names_position]
     columns = df_all.iloc[industries_names_position, horizontal_table_start:]
@@ -76,7 +77,6 @@ def load_Rosstat_non_sym(path, sheetname, quandrant2_columns = 11, quadrant3_row
     products.name = ""
     industries = columns[:-quandrant2_columns]
     industries.name = df_all.columns[0]
-
 
     # Получаем из таблицы коды отраслей и продуктов
     codes_industries = df_all.iloc[codes_industries_position, industries_position]
@@ -87,17 +87,17 @@ def load_Rosstat_non_sym(path, sheetname, quandrant2_columns = 11, quadrant3_row
     df.columns = industries
     df.index = products
     df.name = industries.name
-    
+
     # Обрезаем большую таблицу и добавляем названия строк\столбцов
     df_all = df_all.iloc[vertical_table_start:, horizontal_table_start:]
     df_all.columns = columns
     df_all.index = rows
 
-
     table_format = "Rosstat"
     print("Обрабатываем данные из таблицы в формате " + table_format + " \"" + industries.name + "\"")
 
     return df, df_all, codes_industries.ravel(), codes_products.ravel()
+
 
 def load_Rosstat_separated_data(**path_and_sheetnames):
     """
@@ -178,7 +178,8 @@ def pack_name(str, years, prices_in):
     """
     return str + " за " + years + "гг(" + prices_in + ")"
 
-def save_to_excel(file_name, years, codes, rounding="%.3f", table_format = "Rosstat",  **tables):
+
+def save_to_excel(file_name, years, codes, rounding="%.3f", table_format="Rosstat", **tables):
     """
     Cохраняет полученные таблицы в выбранный excel-файл постранично
 
@@ -194,8 +195,8 @@ def save_to_excel(file_name, years, codes, rounding="%.3f", table_format = "Ross
         Словарь из названий таблиц и самих таблиц
 
     """
-    #wiod16_flag = "w16" if self.table_format == "WIOD16" else ""
-    writer = pd.ExcelWriter("./results/" + years + "/" + table_format + "/" + file_name, #+ wiod16_flag + file_name,
+    # wiod16_flag = "w16" if self.table_format == "WIOD16" else ""
+    writer = pd.ExcelWriter("./results/" + years + "/" + table_format + "/" + file_name,  # + wiod16_flag + file_name,
                             engine='xlsxwriter')
     workbook = writer.book
 

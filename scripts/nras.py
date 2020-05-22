@@ -32,7 +32,7 @@ def nras(G, aa, c, accuracy=0.001, limit=1000, sparsed=True):
 
     try:
         a = aa.astype(float)
-        a[a == 0] = 1e-2
+        a[a == 0] = 1e-9
         (quantity_c, n) = G.shape
         if sparsed:
             cover_rows = [G.indices[G.indptr[i]:G.indptr[i + 1]] for i in range(G.shape[0])]

@@ -27,9 +27,9 @@ def insd(G, aa, c, sparsed=False):
     try:
         gr.setParam('OutputFlag', 0)
         model = gr.Model("INSD")
-        a = aa.astype(float)
 
-        a[aa == 0] = 1e-10
+        a = aa.astype(float)
+        a[aa == 0] = 1e-9
         at = a.flatten()
 
         # add variable z to model ( z_ij = x_ij/a_ij)
@@ -76,10 +76,40 @@ def insd(G, aa, c, sparsed=False):
         # model.setParam('FeasibilityTol',0.01)                        
         model.setParam('OutputFlag', 0)
 
-        model.optimize()
+        model.update()
+        model0 = model.copy()
+        model0.optimize()
+        # print('status', model0.status)
 
-        result = np.array([v.x for v in model.getVars()])
-        return result * at
+        if model0.status in [3, 4, 12]:
+            model.setParam('DualReductions', 0)
+            # print('changed DualReductions')
+            model.optimize()
+            print('status was bad, new status:', model.status)
+
+            if model.status in [3, 4, 12]:
+                model.setParam('DualReductions', 1)
+                # vars = model.getVars()
+                # ubpen = [1.0] * model.numVars
+                model.feasRelaxS(1, False, False, True)
+                model.optimize()
+                print('status was bad twice, new status:', model.status)
+
+            # print('status', model.status)
+            # print(model.getVars())
+            result = np.array([v.x for v in model.getVars()])
+
+        else:
+            # print('status', model0.status)
+            # print(model0.getVars())
+            result = np.array([v.x for v in model0.getVars()])
+
+        return result[:aa.shape[0]] * at
+
+        # model.optimize()
+        #
+        # result = np.array([v.x for v in model.getVars()])
+        # return result * at
 
     except Exception as e:
         logging.error(traceback.format_exc())

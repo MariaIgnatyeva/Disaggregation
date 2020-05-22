@@ -24,9 +24,18 @@ def get_values(x, x_true, save=False, shape=None):
         значения метрик - {название метрики: значение метрики}
     """
     results = {}
-    spec_functions = ['get_values', 'getmembers', 'isfunction']
 
-    for metric in getmembers(sys.modules[__name__], isfunction):
+    spec_functions = ['get_values', 'getmembers', 'isfunction']
+    metric_functions = {'mape': mape,
+                        'wape': wape,
+                        'swad': swad,
+                        'psistat': PsiStat,
+                        'rsq': RSQ,
+                        'inac': inac,
+                        'N0': N0,
+                        'nps': non_preserved_signs}
+
+    for metric in metric_functions.items():
         if (metric[0] not in spec_functions):
             metric_name = metric[0].upper()
             res = metric[1](x, x_true, shape=shape)
@@ -131,7 +140,7 @@ def N0(x, x_true, eps=1e-9, shape=None):
         if x_true.ndim == 2:
             x_true = v.tovector(x_true)
 
-        errors = (x_true < eps) != (x < eps)
+        errors = (x_true <= eps) != (x <= eps)
         return np.sum(errors)
 
     except Exception as e:
@@ -193,14 +202,15 @@ def PsiStat(x, x_true, shape=None):
             x_true = v.tomatrix(x_true, shape)
 
         s = (x_true + x) / 2
+        s[s == 0] = np.full_like(s[s == 0], 1e-9)
 
         inf1 = x_true / s
-        loged1 = np.log(inf1)
+        loged1 = np.log(inf1.astype('float'))
         loged1 = np.nan_to_num(loged1)  # for nan\inf occasions
         left = x_true * loged1
 
         inf2 = x / s
-        loged2 = np.log(inf2)
+        loged2 = np.log(inf2.astype('float'))
         loged2 = np.nan_to_num(loged2)  # for nan\inf occasions
         right = x * loged2
 
@@ -245,6 +255,72 @@ def RSQ(x, x_true, shape=None):
         rsqr = 1 - ESS / TSS
 
         return rsqr
+
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return -1
+
+
+def inac(x, x_true, shape=None):
+    """
+    Получение величины невязки - максимального модуля разности между суммой строки или столбца таблицы x и таблицы x_true
+
+    Parameters
+    ----------
+    x_true: np.ndarray
+        векторизованная базовая матрица
+    x: np.ndarray
+        векторизованная матрица для сравнения ограничений
+
+    Returns
+    -------
+    a: float
+        значение метрики
+    """
+    try:
+        # Проверяем число измерений
+        if x.ndim == 1 or x.shape[1] == 1:
+            x = v.tomatrix(x, shape)
+        if x_true.ndim == 1 or x_true.shape[1] == 1:
+            x_true = v.tomatrix(x_true, shape)
+
+        max_diff_rows = np.max(np.abs(np.sum(x, axis=1) - np.sum(x_true, axis=1)))
+        max_diff_cols = np.max(np.abs(np.sum(x, axis=0) - np.sum(x_true, axis=0)))
+
+        return max(max_diff_rows, max_diff_cols)
+
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return -1
+
+
+def non_preserved_signs(x, x_true, shape=None):
+    """
+    Получение количества элементов таблицы x, знаки которых отличаются от аналогичных элементов таблицы x_true
+
+    Parameters
+    ----------
+    x_true: np.ndarray
+        векторизованная базовая матрица
+    x: np.ndarray
+        векторизованная матрица для сравнения ограничений
+
+    Returns
+    -------
+    a: float
+        значение метрики
+    """
+    try:
+        # Проверяем число измерений
+        if x.ndim == 1 or x.shape[1] == 1:
+            x = v.tomatrix(x, shape)
+        if x_true.ndim == 1 or x_true.shape[1] == 1:
+            x_true = v.tomatrix(x_true, shape)
+
+        changed_signs = (x_true > 0) != (x > 0)
+        return np.sum(changed_signs)
+
+        return max(max_diff_rows, max_diff_cols)
 
     except Exception as e:
         logging.error(traceback.format_exc())

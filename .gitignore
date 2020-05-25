@@ -1,10 +1,7 @@
-# Excel Files
-*.xlsx
-!results/results.xlsx
-
 # Python cache
 __pycache__/
 *.pyc
+.idea
 
 
 # Log Files
@@ -31,6 +28,7 @@ __pycache__/
 # ipynb files
 .ipynb_checkpoints
 *checkpoint.ipynb
-Cycling and MTT methods research — копия.ipynb
+
+obj
 
 temp*
